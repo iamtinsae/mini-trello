@@ -29,12 +29,12 @@ The mini Trello currently supports the following features:
 
 The mini Trello project uses the following technologies:
 
-- Django: A high-level Python web framework for rapid development
-- Django-graphene: A library for building GraphQL APIs with Django
-- React: A JavaScript library for building user interfaces
-- react-beautiful-dnd: A library for adding drag-and-drop functionality to React applications
-- headlessui: A library for building accessible, headless UI components
-- Apollo GraphQL: A library for building GraphQL clients
+- [Django](https://www.djangoproject.com/): A high-level Python web framework for rapid development
+- [Django-graphene](https://docs.graphene-python.org/projects/django/en/latest/): A library for building GraphQL APIs with Django
+- [React](https://www.react.dev/): A JavaScript library for building user interfaces
+- [react-beautiful-dnd](https://github.com/atlassian/react-beautiful-dnd): A library for adding drag-and-drop functionality to React applications
+- [headlessui](https://headlessui.com/): A library for building accessible, headless UI components
+- [Apollo GraphQL](https://www.apollographql.com/): A library for building GraphQL clients
 
 ## Installation
 
