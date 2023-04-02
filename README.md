@@ -9,6 +9,7 @@ This is a mini Trello project consisting of a backend built with Django and Djan
 - [Technologies](#technologies)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Docker](#docker)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -32,6 +33,7 @@ The mini Trello project uses the following technologies:
 - Django-graphene: A library for building GraphQL APIs with Django
 - React: A JavaScript library for building user interfaces
 - react-beautiful-dnd: A library for adding drag-and-drop functionality to React applications
+- headlessui: A library for building accessible, headless UI components
 - Apollo GraphQL: A library for building GraphQL clients
 
 ## Installation
@@ -89,6 +91,34 @@ To use the mini Trello project, follow these steps:
 3. Drag and drop cards between lists to organize your tasks.
 4. Click on a card to view its details and edit or delete it.
 5. Real-time updates will be shown automatically with polling (currently).
+
+## Docker
+
+To run the mini Trello project with Docker, follow these steps:
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/iamtinsae/mini-trello.git
+```
+
+2. Build the Docker images:
+
+```bash
+cd mini-trello/backend
+docker build -t backend .
+cd ../frontend
+docker build -t frontend .
+```
+
+3. Run the Docker containers:
+
+```bash
+docker run -d -p 8000:8000 backend
+docker run -d -p 3000:3000 frontend
+```
+
+4. Open the application in your browser at http://localhost:PORT
 
 ## Contributing
 
