@@ -1,10 +1,15 @@
 import { gql, useQuery } from '@apollo/client';
+import { useSelector, useDispatch } from 'react-redux';
 
-import { Board, BoardProps } from './components/Board';
+import { Board } from './components/Board';
+import { useCardModal } from './utils/use-card-modal';
+import { ModalContext } from './lib/modal-context';
+import { selectLists, selectStatus, setLists } from './lib/lists-slice';
+import { useEffect } from 'react';
 
 const QUERY_BOARDS = gql`
   query {
-    lists {
+    getAllLists {
       id
       title
       createdAt
@@ -31,13 +36,24 @@ const Loader = ({ isLoading }: { isLoading: boolean }) => {
 };
 
 function App() {
-  const { data, loading, error } = useQuery(QUERY_BOARDS, {});
+  const { data, loading } = useQuery(QUERY_BOARDS, {
+    onCompleted(data) {
+      dispatch(setLists(data.getAllLists));
+    },
+  });
+  const { openModal, closeModal, Modal } = useCardModal();
+  const dispatch = useDispatch();
+  const lists = useSelector(selectLists);
+  const status = useSelector(selectStatus);
 
   return (
-    <main>
-      <Loader isLoading={loading} />
-      <Board fetchedLists={data?.lists ?? []} />
-    </main>
+    <ModalContext.Provider value={{ openModal, closeModal }}>
+      <main className="min-h-screen w-full m-0 p-6 overflow-auto">
+        <Loader isLoading={status === 'loading'} />
+        {data && <Board fetchedLists={lists} />}
+        <Modal />
+      </main>
+    </ModalContext.Provider>
   );
 }
 

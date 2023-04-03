@@ -1,18 +1,29 @@
+import { useContext } from 'react';
 import { clsx } from '../utils';
 import { useHover, useIsMovingLeftOrRight } from '../utils/hooks';
 import { PencilIcon } from './Icons';
+import { ModalContext } from '../lib/modal-context';
+import { CardType } from '../lib/types';
 
-export interface CardProps {
-  id: string;
-  title: string;
-  isDragging?: boolean;
-}
-export const Card = ({ title, isDragging }: CardProps) => {
+export interface CardProps extends CardType {}
+
+export const Card = ({
+  id,
+  title,
+  isDragging,
+  description,
+  createdAt,
+  updatedAt,
+}: CardProps) => {
   const [ref, isHovered] = useHover();
   const [isMovingLeft, isMovingRight] = useIsMovingLeftOrRight();
+  const { openModal, closeModal } = useContext(ModalContext);
 
   return (
     <div
+      onClick={() =>
+        openModal({ id, title, description, createdAt, updatedAt })
+      }
       ref={ref}
       className={clsx(
         'w-full rounded bg-white shadow-sm cursor-pointer hover:bg-gray-100 select-none transform transition-all',

@@ -66,12 +66,10 @@ export const useIsMovingLeftOrRight = () => {
   return [isMovingLeft, isMovingRight] as const;
 };
 
-export const useLostFocus = (ref: any) => {
-  const [lostFocus, setLostFocus] = useState(false);
-
+export const useClickOutside = (ref: any, callback: any) => {
   const handleClickOutside = (e: MouseEvent) => {
     if (ref.current && !ref.current.contains(e.target)) {
-      setLostFocus(true);
+      callback();
     }
   };
 
@@ -81,6 +79,4 @@ export const useLostFocus = (ref: any) => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
-
-  return lostFocus;
-}
+};

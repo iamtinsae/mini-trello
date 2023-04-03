@@ -18,9 +18,10 @@
 }
 
 body {
-  @apply bg-white h-screen p-6 max-w-full;
+  @apply bg-white h-screen p-0 m-0 max-w-full fixed right-0 left-0 top-0 bottom-0;
   background: url('https://images.unsplash.com/photo-1551970634-747846a548cb?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2670&q=80');
   background-repeat: no-repeat;
   background-size: cover;
   background-attachment: fixed;
+  background-position: center;
 }

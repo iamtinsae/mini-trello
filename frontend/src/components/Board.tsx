@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
+import { useSelector, useDispatch } from 'react-redux';
 import { gql, useQuery } from '@apollo/client';
 import { client } from '../lib/apollo';
 
 import { CardProps } from './Card';
 import { List, ListProps } from './List';
 import { PlusIcon } from './Icons';
+import { addList, selectLists, setLists } from '../lib/lists-slice';
 
 const CREATE_LIST = gql`
   mutation ($title: String!) {
@@ -89,16 +91,11 @@ const move = (
   return result;
 };
 
-export const Board = ({ fetchedLists }: BoardProps) => {
-  const [lists, setLists] = useState(fetchedLists);
-
-  useEffect(() => {
-    setLists(fetchedLists);
-  }, [fetchedLists]);
+export const Board = ({ fetchedLists: lists }: BoardProps) => {
+  console.log(lists);
+  const dispatch = useDispatch();
 
   const handleCreateList = async () => {
-    const newLists = Array.from(lists);
-
     try {
       const { data } = await client.mutate({
         mutation: CREATE_LIST,
@@ -107,40 +104,17 @@ export const Board = ({ fetchedLists }: BoardProps) => {
         },
       });
 
-      newLists.push({
-        id: data.createList.list.id,
-        title: data.createList.list.title,
-        cards: [],
-        isEditing: true,
-      });
+      dispatch(
+        addList({
+          id: data.createList.list.id,
+          title: data.createList.list.title,
+          cards: [],
+          isEditing: true,
+        })
+      );
     } catch (error) {
       // --
     }
-
-    setLists(newLists);
-  };
-
-  const updateList = ({ id, title, cards, isEditing }: ListProps) => {
-    const newLists = Array.from(lists);
-
-    const listIdx = newLists.findIndex((list) => list.id === id);
-    newLists[listIdx] = {
-      id,
-      title,
-      cards,
-      isEditing,
-    };
-
-    setLists(newLists);
-  };
-
-  const deleteList = (id: string) => {
-    const newLists = Array.from(lists);
-
-    const listIdx = newLists.findIndex((list) => list.id === id);
-    newLists.splice(listIdx, 1);
-
-    setLists(newLists);
   };
 
   const onDragEnd = async (result: DropResult) => {
@@ -162,18 +136,20 @@ export const Board = ({ fetchedLists }: BoardProps) => {
 
       const items = reorder(sourceList.cards, source.index, destination.index);
 
-      setLists((prevLists) =>
-        prevLists.map((list) => {
-          if (list.id === sourceList.id) {
-            return {
-              id: sourceList.id,
-              title: sourceList.title,
-              cards: items,
-            };
-          }
+      dispatch(
+        setLists(
+          lists.map((list) => {
+            if (list.id === sourceList.id) {
+              return {
+                id: sourceList.id,
+                title: sourceList.title,
+                cards: items,
+              };
+            }
 
-          return list;
-        })
+            return list;
+          })
+        )
       );
 
       await client.mutate({
@@ -201,26 +177,28 @@ export const Board = ({ fetchedLists }: BoardProps) => {
         destination
       );
 
-      setLists((prevLists) =>
-        prevLists.map((list) => {
-          if (list.id === sourceList.id) {
-            return {
-              id: sourceList.id,
-              title: sourceList.title,
-              cards: result[sourceIdx],
-            };
-          }
+      dispatch(
+        setLists(
+          lists.map((list) => {
+            if (list.id === sourceList.id) {
+              return {
+                id: sourceList.id,
+                title: sourceList.title,
+                cards: result[sourceIdx],
+              };
+            }
 
-          if (list.id === destinationList.id) {
-            return {
-              id: destinationList.id,
-              title: destinationList.title,
-              cards: result[destinationIdx],
-            };
-          }
+            if (list.id === destinationList.id) {
+              return {
+                id: destinationList.id,
+                title: destinationList.title,
+                cards: result[destinationIdx],
+              };
+            }
 
-          return list;
-        })
+            return list;
+          })
+        )
       );
 
       await client.mutate({
@@ -242,27 +220,27 @@ export const Board = ({ fetchedLists }: BoardProps) => {
   };
 
   return (
-    <div className="flex flex-row gap-x-4 items-start">
-      <DragDropContext onDragEnd={onDragEnd}>
-        {lists.map((list, idx) => (
-          <List
-            key={list.id}
-            id={list.id}
-            title={list.title}
-            cards={list.cards}
-            isEditing={list.isEditing}
-            updateList={updateList}
-            deleteList={deleteList}
-          />
-        ))}
-      </DragDropContext>
-      <button
-        className="bg-white/25 w-[272px] rounded-md py-2 px-4 hover:bg-white/50 flex items-center text-sm font-medium h-auto min-w-fit"
-        onClick={handleCreateList}
-      >
-        <PlusIcon className="w-3 h-3 text-white mr-2 fill-white" />
-        Add Another List
-      </button>
-    </div>
+    <>
+      <div className="flex flex-row gap-x-4 items-start">
+        <DragDropContext onDragEnd={onDragEnd}>
+          {lists.map((list, idx) => (
+            <List
+              key={list.id}
+              id={list.id}
+              title={list.title}
+              cards={list.cards}
+              isEditing={list.isEditing}
+            />
+          ))}
+        </DragDropContext>
+        <button
+          className="bg-white/25 w-[272px] rounded-md py-2 px-4 hover:bg-white/50 flex items-center text-sm font-medium h-auto min-w-fit"
+          onClick={handleCreateList}
+        >
+          <PlusIcon className="w-3 h-3 text-white mr-2 fill-white" />
+          Add Another List
+        </button>
+      </div>
+    </>
   );
 };

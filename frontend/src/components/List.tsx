@@ -2,21 +2,17 @@ import { gql } from '@apollo/client';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { Draggable, Droppable, DroppableProvided } from 'react-beautiful-dnd';
+import { useDispatch } from 'react-redux';
 
 import { clsx } from '../utils';
 import { ThreeDotsIcon } from './Icons';
 import { Card, CardProps } from './Card';
-import { useLostFocus } from '../utils/hooks';
+import { useClickOutside } from '../utils/hooks';
 import { client } from '../lib/apollo';
+import { addCard, removeList, updateList } from '../lib/lists-slice';
+import { ListType } from '../lib/types';
 
-export interface ListProps {
-  id: string;
-  title: string;
-  cards: CardProps[];
-  isEditing?: boolean;
-  updateList?: (props: ListProps) => void;
-  deleteList?: (id: string) => void;
-}
+export interface ListProps extends ListType {}
 
 const UPDATE_LIST = gql`
   mutation ($title: String!, $id: ID!) {
@@ -60,19 +56,19 @@ const DELETE_LIST = gql`
   }
 `;
 
-export const List = ({
-  id,
-  title,
-  cards,
-  isEditing,
-  updateList,
-  deleteList,
-}: ListProps) => {
+export const List = ({ id, title, cards, isEditing }: ListProps) => {
   const [enabled, setEnabled] = useState(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
-  const lostFocus = useLostFocus(titleInputRef);
   const [createCard, setCreateCard] = useState(false);
   const [cardTitle, setCardTitle] = useState('');
+  const [editTitle, setEditTitle] = useState(isEditing);
+
+  const dispatch = useDispatch();
+
+  const editListTitle = () => {
+    setEditTitle(true);
+    titleInputRef.current?.focus();
+  };
 
   const handleTitleChange = async () => {
     const { data } = await client.mutate({
@@ -83,21 +79,29 @@ export const List = ({
       },
     });
 
-    updateList?.({
-      ...data.updateList.list,
-    });
+    dispatch(
+      updateList({
+        ...data.updateList.list,
+        isEditing: false,
+      })
+    );
+
+    setEditTitle(false);
   };
 
+  useClickOutside(titleInputRef, () => {
+    handleTitleChange();
+  });
+
   const handleDeleteList = async () => {
-    console.log(id);
-    const resp = await client.mutate({
+    await client.mutate({
       mutation: DELETE_LIST,
       variables: {
         id,
       },
     });
 
-    deleteList?.(id);
+    dispatch(removeList(id));
   };
 
   const handleCreateCard = async () => {
@@ -111,25 +115,16 @@ export const List = ({
     });
 
     setCardTitle('');
+    setEditTitle(false);
     setCreateCard(false);
 
-    updateList?.({
-      id,
-      title,
-      cards: [
-        ...cards,
-        {
-          ...data.createCard.card,
-        },
-      ],
-    });
+    dispatch(
+      addCard({
+        listId: id,
+        card: data.createCard.card,
+      })
+    );
   };
-
-  useEffect(() => {
-    if (lostFocus) {
-      handleTitleChange();
-    }
-  }, [lostFocus]);
 
   useEffect(() => {
     const animation = requestAnimationFrame(() => setEnabled(true));
@@ -154,7 +149,7 @@ export const List = ({
         >
           <div className="w-[272px] rounded bg-[#ebecf0]">
             <div className="p-1 text-gray-900 flex justify-between">
-              {isEditing ? (
+              {editTitle ? (
                 <input
                   ref={titleInputRef}
                   type="text"
@@ -187,6 +182,7 @@ export const List = ({
                               active ? 'bg-gray-100' : '',
                               'w-full rounded text-left hover:bg-gray-300 py-2 px-3 text-gray-900 font-medium text-xs'
                             )}
+                            onClick={editListTitle}
                           >
                             Edit
                           </button>
@@ -221,9 +217,8 @@ export const List = ({
                     >
                       <Card
                         key={card.id}
-                        id={card.id}
-                        title={card.title}
                         isDragging={snapshot.isDragging}
+                        {...card}
                       />
                     </div>
                   )}
