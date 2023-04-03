@@ -4,9 +4,9 @@ from . import models, types, mutations
 
 
 class Query(graphene.ObjectType):
-    lists = graphene.List(types.ListType)
+    get_all_lists = graphene.List(types.ListType)
 
-    def resolve_lists(self, info):
+    def resolve_get_all_lists(self, info):
         return models.List.objects.all()
 
 

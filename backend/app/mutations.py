@@ -75,7 +75,7 @@ class DeleteCard(graphene.Mutation):
     class Arguments:
         id = graphene.ID(required=True)
 
-    card = graphene.Field(types.CardType)
+    deleted = graphene.Boolean()
 
     def mutate(self, info, id):
         card = models.Card.objects.get(id=id)
@@ -87,7 +87,7 @@ class DeleteCard(graphene.Mutation):
             card.order = order
             card.save()
 
-        return DeleteCard(card=card)
+        return DeleteCard(deleted=True)
 
 
 class ReorderCards(graphene.Mutation):
